@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MorfoCitra – Morphological Filtering pada Citra Tulisan</title>
+  <meta name="description" content="Implementasi Morphological Filtering untuk mengurangi noise pada citra tulisan menggunakan operasi morfologi matematis. Berjalan langsung di browser." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div class="bingkai">
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar" id="navbar">
+    <a href="#beranda" class="logo">Morfo<span>Citra</span></a>
+    <nav class="menu" id="menu">
+      <a href="#beranda">Beranda</a>
+      <a href="#konsep">Konsep</a>
+      <a href="#alur">Alur</a>
+      <a href="#eksperimen">Eksperimen</a>
+      <a href="#hasil">Hasil</a>
+    </nav>
+    <div class="nav-aksi">
+      <a href="#eksperimen" class="btn btn-hijau btn-kecil">
+        <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M12 3l9 8h-3v9h-5v-6h-2v6H6v-9H3z"/></svg>
+        Coba Demo
+      </a>
+      <button class="hamburger" id="hamburger" aria-label="Buka menu"><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <!-- ================= HERO ================= -->
+  <section class="hero" id="beranda">
+    <div class="hero-langit"></div>
+    <svg class="hero-bukit" viewBox="0 0 1200 320" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 210 Q180 120 360 190 T720 170 T1200 150 V320 H0Z" fill="#4f7a3f" opacity=".55"/>
+      <path d="M0 250 Q250 180 520 240 T1200 220 V320 H0Z" fill="#3e6a32" opacity=".8"/>
+      <g fill="#2c4f25" opacity=".9">
+        <path d="M70 250 l26 -90 l26 90z"/><path d="M110 255 l20 -70 l20 70z"/>
+        <path d="M1040 235 l30 -110 l30 110z"/><path d="M1090 240 l22 -80 l22 80z"/><path d="M1000 245 l18 -60 l18 60z"/>
+      </g>
+      <path d="M0 285 Q300 245 600 280 T1200 270 V320 H0Z" fill="#5d8f45"/>
+    </svg>
+
+    <div class="hero-isi">
+      <div class="hero-teks">
+        <span class="badge">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M4 4h16v16H4zM7 7v10h10V7z"/></svg>
+          Pengolahan Citra Digital
+        </span>
+        <h1>Bersihkan Noise pada Citra Tulisan</h1>
+        <p>Implementasi <strong>Morphological Filtering</strong> dengan erosion, dilation, opening, dan closing. Unggah gambar tulisanmu, beri noise sintetis, lalu lihat operasi mana yang paling efektif berdasarkan IoU dan F1-score.</p>
+        <div class="hero-tombol">
+          <a href="#eksperimen" class="btn btn-garis">Mulai Eksperimen</a>
+          <a href="#konsep" class="tautan-terang">Pelajari konsepnya →</a>
+        </div>
+      </div>
+
+      <figure class="hero-kartu">
+        <div class="hero-kartu-panel">
+          <canvas id="heroNoisy" width="60" height="30"></canvas>
+          <figcaption>Noisy</figcaption>
+        </div>
+        <div class="panah">→</div>
+        <div class="hero-kartu-panel">
+          <canvas id="heroBersih" width="60" height="30"></canvas>
+          <figcaption>Opening 3×3</figcaption>
+        </div>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= BAR PENCARIAN / UPLOAD CEPAT ================= -->
+  <div class="bar-cepat">
+    <div class="bar-cepat-input">
+      <label class="bar-bagian" for="inputCepat">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M5 20h14v-2H5zm7-16l-5 5h3v6h4V9h3z"/></svg>
+        <span id="labelCepat">Pilih gambar tulisan (jpg/png)…</span>
+      </label>
+      <input type="file" id="inputCepat" accept="image/*" hidden />
+      <span class="bar-pemisah"></span>
+      <span class="bar-bagian bar-redup">4 jenis noise · 64 konfigurasi</span>
+      <span class="bar-ikon" title="Tanpa server: diproses di browser">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 2l8 4v6c0 5-3.4 9.4-8 10-4.6-.6-8-5-8-10V6z"/></svg>
+      </span>
+    </div>
+    <button class="btn btn-hijau" id="tombolContohCepat">Pakai Contoh</button>
+  </div>
+
+  <!-- ================= TENTANG ================= -->
+  <section class="tentang" id="konsep">
+    <div class="tentang-gambar">
+      <div class="lencana-bulat">
+        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M3 3h8v8H3zm10 0h8v8h-8zM3 13h8v8H3zm13 0h2v3h3v2h-3v3h-2v-3h-3v-2h3z"/></svg>
+        <span>Citra Biner</span>
+      </div>
+      <div class="foto-bingkai">
+        <canvas id="ilustrasiTentang" width="96" height="60"></canvas>
+      </div>
+      <div class="lencana-kecil">SE</div>
+    </div>
+    <div class="tentang-teks">
+      <h2>Apa itu Morphological Filtering?</h2>
+      <p>Morfologi matematis memproses <strong>bentuk</strong> objek pada citra biner. Sebuah <em>structuring element</em> (kernel kecil berbentuk persegi atau elips) digeser ke seluruh citra untuk menipiskan, menebalkan, menghapus bintik, atau menutup lubang pada goresan huruf.</p>
+      <p>Pada proyek ini, satu gambar tulisan bersih dijadikan <strong>ground truth</strong>. Empat jenis noise sintetis ditambahkan, lalu setiap operasi diuji dengan kernel 3×3 dan 5×5, bentuk persegi dan elips. Tidak ada training model; yang dibandingkan adalah kombinasi operasi dan kernel.</p>
+      <div class="tentang-aksi">
+        <a href="#eksperimen" class="btn btn-hijau">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          Jalankan Demo
+        </a>
+        <a href="#operasi" class="tautan-hijau">Lihat operasinya</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= EMPAT OPERASI ================= -->
+  <section class="operasi" id="operasi">
+    <h2 class="judul-tengah">4 Operasi Morfologi yang Diuji</h2>
+    <p class="sub-tengah">Contoh di bawah dihitung langsung oleh browser dengan kernel persegi 3×3.</p>
+    <div class="kartu-grid">
+      <article class="kartu">
+        <div class="kartu-gambar"><canvas class="mini" data-op="erosion" data-noise="salt_pepper" width="80" height="40"></canvas></div>
+        <div class="kartu-isi">
+          <h3>Erosion</h3>
+          <p>Menipiskan foreground. Bintik putih kecil hilang, tetapi goresan huruf juga ikut menipis.</p>
+          <span class="rumus">A ⊖ B</span>
+        </div>
+      </article>
+      <article class="kartu">
+        <div class="kartu-gambar"><canvas class="mini" data-op="dilation" data-noise="lubang_hitam" width="80" height="40"></canvas></div>
+        <div class="kartu-isi">
+          <h3>Dilation</h3>
+          <p>Menebalkan foreground. Lubang kecil tertutup, tetapi huruf yang berdekatan bisa menyatu.</p>
+          <span class="rumus">A ⊕ B</span>
+        </div>
+      </article>
+      <article class="kartu">
+        <div class="kartu-gambar"><canvas class="mini" data-op="opening" data-noise="bintik_putih" width="80" height="40"></canvas></div>
+        <div class="kartu-isi">
+          <h3>Opening</h3>
+          <p>Erosion lalu dilation. Diharapkan efektif menghapus bintik putih terpisah tanpa banyak mengubah huruf.</p>
+          <span class="rumus">(A ⊖ B) ⊕ B</span>
+        </div>
+      </article>
+      <article class="kartu">
+        <div class="kartu-gambar"><canvas class="mini" data-op="closing" data-noise="goresan_terputus" width="80" height="40"></canvas></div>
+        <div class="kartu-isi">
+          <h3>Closing</h3>
+          <p>Dilation lalu erosion. Diharapkan efektif menutup lubang dan menyambung celah kecil pada goresan.</p>
+          <span class="rumus">(A ⊕ B) ⊖ B</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ================= ALUR ================= -->
+  <section class="alur" id="alur">
+    <h2 class="judul-tengah">Alur Program</h2>
+    <ol class="alur-list">
+      <li><span>1</span><h4>Input</h4><p>Unggah satu gambar tulisan bersih.</p></li>
+      <li><span>2</span><h4>Preprocessing</h4><p>Grayscale, Otsu, tulisan putih di latar hitam.</p></li>
+      <li><span>3</span><h4>Noise</h4><p>Salt-and-pepper, bintik, lubang, goresan terputus.</p></li>
+      <li><span>4</span><h4>Filtering</h4><p>4 operasi × 2 ukuran × 2 bentuk kernel.</p></li>
+      <li><span>5</span><h4>Evaluasi</h4><p>Piksel foreground, komponen, IoU, F1-score.</p></li>
+      <li><span>6</span><h4>Output</h4><p>Gambar, CSV, analisis, dan ZIP.</p></li>
+    </ol>
+  </section>
+
+  <!-- ================= EKSPERIMEN ================= -->
+  <section class="eksperimen" id="eksperimen">
+    <h2 class="judul-tengah">Laboratorium Eksperimen</h2>
+    <p class="sub-tengah">Semua proses berjalan di browser kamu. Gambar tidak dikirim ke server mana pun.</p>
+
+    <!-- LANGKAH 1 -->
+    <div class="panel" id="langkah1">
+      <div class="panel-kepala"><span class="nomor">1</span><div><h3>Upload & Preprocessing</h3><p>Grayscale → Gaussian blur 3×3 → Otsu → tulisan putih (255), latar hitam (0).</p></div></div>
+      <div class="zona-upload" id="zonaUpload">
+        <input type="file" id="inputGambar" accept="image/*" hidden />
+        <svg viewBox="0 0 24 24" width="36" height="36" aria-hidden="true"><path fill="currentColor" d="M19 13v6H5v-6H3v8h18v-8zM11 4.8V16h2V4.8l3.6 3.6L18 7l-6-6-6 6 1.4 1.4z"/></svg>
+        <p><strong>Seret gambar ke sini</strong> atau klik untuk memilih file</p>
+        <small>Tulisan gelap di kertas terang, kontras jelas, lebar 600–1000 px</small>
+      </div>
+      <div class="baris-kontrol">
+        <button class="btn btn-garis-hijau" id="tombolContoh">Pakai gambar contoh</button>
+        <label class="kontrol">Inversi
+          <select id="pilihInversi">
+            <option value="auto">Otomatis</option>
+            <option value="true">Paksa inversi</option>
+            <option value="false">Tanpa inversi</option>
+          </select>
+        </label>
+        <label class="kontrol">Lebar maks
+          <input type="number" id="maksLebar" value="800" min="200" max="1600" step="50" />
+        </label>
+      </div>
+      <div class="info" id="infoPre" hidden></div>
+      <div class="galeri g3" id="galeriPre"></div>
+    </div>
+
+    <!-- LANGKAH 2 -->
+    <div class="panel terkunci" id="langkah2">
+      <div class="panel-kepala"><span class="nomor">2</span><div><h3>Noise Sintetis</h3><p>Empat kondisi dibuat dari ground truth yang sama. Atur parameter untuk tingkat noise rendah/tinggi.</p></div></div>
+      <div class="param-grid">
+        <label class="kontrol">Salt-and-pepper p <output id="outP">0.03</output>
+          <input type="range" id="paramP" min="0.005" max="0.10" step="0.005" value="0.03" /></label>
+        <label class="kontrol">Jumlah bintik putih <input type="number" id="paramBintik" value="150" min="0" max="2000" /></label>
+        <label class="kontrol">Radius bintik maks <input type="number" id="paramRBintik" value="2" min="0" max="6" /></label>
+        <label class="kontrol">Jumlah lubang hitam <input type="number" id="paramLubang" value="200" min="0" max="2000" /></label>
+        <label class="kontrol">Radius lubang maks <input type="number" id="paramRLubang" value="2" min="0" max="6" /></label>
+        <label class="kontrol">Jumlah celah <input type="number" id="paramCelah" value="30" min="0" max="500" /></label>
+        <label class="kontrol">Lebar celah maks <input type="number" id="paramLebarCelah" value="3" min="2" max="8" /></label>
+        <label class="kontrol">Seed <input type="number" id="paramSeed" value="42" /></label>
+      </div>
+      <div class="baris-kontrol"><button class="btn btn-hijau" id="tombolNoise">Buat Noise</button></div>
+      <div class="galeri g5" id="galeriNoise"></div>
+    </div>
+
+    <!-- LANGKAH 3 -->
+    <div class="panel terkunci" id="langkah3">
+      <div class="panel-kepala"><span class="nomor">3</span><div><h3>Morphological Filtering</h3><p>Keempat operasi dicoba pada setiap citra noisy: 4 noise × 4 operasi × 2 ukuran × 2 bentuk = 64 citra.</p></div></div>
+      <div class="baris-kontrol">
+        <button class="btn btn-hijau" id="tombolFilter">Jalankan 64 Konfigurasi</button>
+        <div class="progres" id="progres" hidden><div class="progres-isi" id="progresIsi"></div><span id="progresTeks">0%</span></div>
+      </div>
+      <div id="penampil" hidden>
+        <div class="tab-noise" id="tabNoise"></div>
+        <div class="baris-kontrol">
+          <div class="segmen" id="segUkuran"><button data-v="3" class="aktif">3×3</button><button data-v="5">5×5</button></div>
+          <div class="segmen" id="segBentuk"><button data-v="persegi" class="aktif">Persegi</button><button data-v="elips">Elips</button></div>
+          <div class="kernel-vis" id="kernelVis"></div>
+        </div>
+        <div class="galeri g3" id="galeriFilter"></div>
+        <p class="catatan">Klik gambar mana pun untuk mengunduhnya sebagai PNG. Bandingkan setiap hasil dengan ground truth: apakah bintik hilang, lubang tertutup, celah tersambung, dan apakah huruf terlalu tipis/tebal?</p>
+      </div>
+    </div>
+
+    <!-- LANGKAH 4 -->
+    <div class="panel terkunci" id="hasil">
+      <div class="panel-kepala"><span class="nomor">4</span><div><h3>Evaluasi</h3><p>Metrik dihitung terhadap ground truth bersih. Filtering berguna jika IoU-nya melampaui baris "tanpa filter".</p></div></div>
+      <div class="kartu-terbaik" id="kartuTerbaik"></div>
+      <div class="baris-kontrol">
+        <label class="kontrol">Tampilkan
+          <select id="filterTabel"><option value="semua">Semua jenis noise</option></select>
+        </label>
+        <button class="btn btn-garis-hijau" id="unduhCsv">Unduh CSV</button>
+        <button class="btn btn-hijau" id="unduhZip">Unduh Semua (ZIP)</button>
+      </div>
+      <div class="tabel-wadah"><table id="tabel"><thead></thead><tbody></tbody></table></div>
+    </div>
+
+    <!-- LANGKAH 5 -->
+    <div class="panel terkunci" id="langkah5">
+      <div class="panel-kepala"><span class="nomor">5</span><div><h3>Analisis Otomatis & Draft Kesimpulan</h3><p>Disusun dari angka aktual. Ini bahan laporan; tetap periksa gambar perbandingan secara visual.</p></div></div>
+      <div id="analisis"></div>
+      <div class="baris-kontrol"><button class="btn btn-garis-hijau" id="unduhTxt">Unduh analisis (.txt)</button></div>
+    </div>
+  </section>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="footer">
+    <div>
+      <a href="#beranda" class="logo logo-terang">Morfo<span>Citra</span></a>
+      <p>Mini proyek Pengolahan Citra Digital:<br/>Implementasi Morphological Filtering untuk Mengurangi Noise pada Citra Tulisan Menggunakan Operasi Morfologi Matematis.</p>
+    </div>
+    <div>
+      <h4>Sumber</h4>
+      <a href="notebook/Morphological_Filtering_Citra_Tulisan.ipynb">Notebook Google Colab (.ipynb)</a>
+      <a href="#eksperimen">Demo di browser</a>
+    </div>
+    <div>
+      <h4>Teknologi</h4>
+      <p>HTML, CSS, JavaScript murni<br/>Algoritma disamakan dengan OpenCV</p>
+    </div>
+  </footer>
+</div>
+
+<script src="js/morfologi.js"></script>
+<script src="js/zip.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
